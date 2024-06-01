@@ -1,43 +1,42 @@
+function findById(items, id) {
+  return items.find(item => item.id === id)
+}
+function sortByProperty(items, property) {
+  return items.sort((a, b) => a[property].localeCompare(b[property]))
+}
+
+function attachAuthorsToBooks(books, authors) {
+  return books.map(book => {
+    const author = findById(authors, book.authorId)
+    return { ...book, author }
+  });
+}
+
 function findAccountById(accounts, id) {
-  return accounts.find(account => account.id === id)
+  return findById(accounts, id)
 }
 
 function sortAccountsByLastName(accounts) {
-  accounts.sort((a, b) => {
-    return a.name.last.localeCompare(b.name.last)
-  });
-  return accounts
+  return sortByProperty(accounts, 'name.last')
 }
 
 function getTotalNumberOfBorrows(account, books) {
-  const borrowedBooks = []
-  
-  for (let i = 0; i < books.length; i++) {
-    const book = books[i]
-    const borrows = book.borrows
-    
-    for (let b = 0; b < borrows.length; b++) {
-      if (borrows[b].id === account.id) {
-        borrowedBooks.push(borrows[b])
-      }
-    }
-  }
-  return borrowedBooks.length
+  let totalBorrows = 0
+
+  books.forEach(book => {
+    const borrows = book.borrows.filter(borrow => borrow.id === account.id)
+    totalBorrows += borrows.length
+  })
+
+  return totalBorrows
 }
 
-
 function getBooksPossessedByAccount(account, books, authors) {
-  const borrowedBooks = books.filter(book => {
-    const borrowed = book.borrows.some(borrow => borrow.id === account.id && !borrow.returned)
-    return borrowed
-  });
-  
-  borrowedBooks.forEach(book => {
-    const author = authors.find(author => author.id === book.authorId)
-    book.author = author
-  })
-  
-  return borrowedBooks
+  const borrowedBooks = books.filter(book => 
+    book.borrows.some(borrow => borrow.id === account.id && !borrow.returned)
+  )
+
+  return attachAuthorsToBooks(borrowedBooks, authors)
 }
 
 
@@ -46,4 +45,4 @@ module.exports = {
   sortAccountsByLastName,
   getTotalNumberOfBorrows,
   getBooksPossessedByAccount,
-};
+}
